@@ -1,12 +1,16 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from rest_framework.views import APIView
 from .serializers import *
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenRefreshSerializer
 from rest_framework import status
 from rest_framework.response import Response
+from django.http import JsonResponse, HttpResponse
+from django.core.exceptions import ObjectDoesNotExist
+
+from .models import User
 
 import jwt
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, get_user_model
 from base.settings import SECRET_KEY
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.hashers import check_password
@@ -242,7 +246,8 @@ class LoginView(APIView):
         res = Response({
             "message":"Log out success"
         }, status=status.HTTP_202_ACCEPTED)
-        res.delete_cookie('accesss')
+        # res.delete_cookie('jwt')
+        # res.delete_cookie('accesss')
         res.delete_cookie('refresh')
         return res
         
@@ -260,3 +265,67 @@ class LoginView(APIView):
 #         return res
 #         #redirect('')
 #         #return render(request, '#.html')
+
+# def login_decorator(func):
+#     def wrapper(self, request, *args, **kwargs):
+#         try:
+#             # access_token = request.headers.get('access', None)      
+#             access_token = request.COOKIES['access']    
+#             payload = jwt.decode(access_token, SECRET_KEY, algorithm='HS256')  
+#             user = User.objects.get(email=payload['email'])             
+#             request.user = user                                                
+
+#         except jwt.exceptions.DecodeError:
+#             return JsonResponse({'message' : 'INVALID_TOKEN' }, status=400)
+
+#         except User.DoesNotExist:                                           
+#             return JsonResponse({'message' : 'INVALID_USER'}, status=400)
+
+#         return func(self, request, *args, **kwargs)
+
+#     return wrapper
+    
+
+# class HomeView(APIView):
+#     def post(self):
+#         res = Response({
+#             "you are already in"
+#         }, status=status.HTTP_200_OK)
+#         return res
+
+class ProfileView(APIView):
+    def get(self, request):
+        try:
+            access = request.COOKIES['access']
+            payload = jwt.decode(access, SECRET_KEY, algorithms=['HS256'])
+            
+            # user =User.objects.get(email = payload['email'])
+            # user_id = user
+
+            pk = payload.get('user_id')
+            user = get_object_or_404(User, pk = pk)
+            serializer = UserSerializer(instance= user)
+            # user_id = serializer.data.get('subsr', None)
+            
+            # subsr = serializer.data.get('subsr', None)
+
+            if serializer.data.get('is_active', None):
+                 return Response(serializer.data.get('id', None), status=status.HTTP_200_OK)
+            else:
+                return Response({"message": "please log in first"}, status= status.HTTP_403_FORBIDDEN)
+           
+            
+            # return render(request, 'profile.html', {'rec': serializer.data})
+        except(jwt.exceptions.InvalidSignatureError):
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        except jwt.ExpiredSignatureError:
+            return JsonResponse({"message": "EXPIRED_TOKEN"}, status = 400)
+        # user_id = request.user.email
+        # res = HttpResponse("<p> {{user_id}} </p>")
+        # return res
+        # return render(request, 'profile.html', {'recommendations':user_id})
+
+from django.views import View
+
+def basic(request):
+  return render(request, 'basic.html')

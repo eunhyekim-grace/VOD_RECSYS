@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h3>로그인 후 보이는 화면</h3>
+    <!-- <a>안녕하세요 {{user.username}}님 / 사용하는 subsr : {{user.subsr}}
+    </a> -->
+    <br>
+
+    <a>추천해드릴께요</a>
+    <p>사용자의 usbsr 정보: {{rec}}</p>
+    <p>추천 결과가 없습니다.</p>
+
+
+<!-- 
+    <a href="{% url 'users:logout' %}">로그아웃하기</a>
+    <a>
+        {% if request.user.is_authenticated %}
+    <li>추천받기</li>
+    <li>{{request.user.email}}</li>
+    {% else %}
+    <li>로그인해야함</li>
+    {% endif %}
+    </a> -->
+</body>
+</html>
